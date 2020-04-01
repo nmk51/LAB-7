@@ -1,0 +1,32 @@
+/*
+ * GccApplication33.cpp
+ *
+ * Created: 4/1/2020 4:30:26 PM
+ * Author : Nicholas
+ */ 
+//Receiving data
+
+#include <avr/io.h>
+void initialize_sart();
+
+
+int main(void)
+{
+	int data;//Incoming Data
+    while (1) 
+    {
+	while(!(UCSR0A & 0b10000000));
+	data = UDR0; //Reads the data 
+	PORTD = data;//Prints data onto PORTD Lights
+    }
+	return 0;
+}//END MAIN
+
+void initialize_sart(void){
+	UCSR0B = 0b00010000;//Enables serial transmission
+	UCSR0C = 0b00000110;//Asynchronous mode,8 bit, no parity, 1 stop bit
+	
+	UBRR0L = 0x67; //(9600 baud)PROBABLY HAVE TO CHANGE SINCE DONT HAVE SECOND CLOCK
+	
+	
+}
