@@ -39,7 +39,7 @@ void initialize_usart(void) // setup function for USART
 {
 	UCSR0B = 0b00010000; // enable serial transmission; 	UCSR0B = (1<<RXEN0); // enable serial receive
 	UCSR0C = 0b00000110; // Asynchronous mode, 8-bit data; no parity; 1 stop bit
-	UBRR0L = 0x67; // 9,600 baud if Fosc = 16MHz, Might have to change since dont have second clock
+	UBRR0L = 0x67; // (9,600 baud rate/ 16MHz external crystal Quartz Clock)
 }
 void transmit_data_usart(int data_out) // Function to transmit a character
 {
