@@ -1,9 +1,10 @@
 /*
- * GccApplication33.cpp
+ * GccApplication35.cpp
  *
- * Created: 4/1/2020 4:30:26 PM
- * Author : Nicholas
+ * Created: 4/4/2020 4:55:19 PM
+ * Author : Nicholas Kenny
  */ 
+
 //Receiving data
 
 #include <avr/io.h>
@@ -12,13 +13,16 @@ void initialize_sart();
 
 int main(void)
 {
+	DDRD = 0x00;//Sets portB as Input
+	DDRC = 0xff;//Sets PortD as Output
+	PORTC = 0x00;//Turns all pins off
 	int data;//Incoming Data
-    while (1) 
-    {
-	while(!(UCSR0A & 0b10000000));
-	data = UDR0; //Reads the data 
-	PORTD = data;//Prints data onto PORTD Lights
-    }
+	while (1)
+	{
+		while(!(UCSR0A & 0b10000000));
+		data = UDR0; //Reads the data
+		PORTC = data;//Prints data onto PORTD Lights
+	}
 	return 0;
 }//END MAIN
 
