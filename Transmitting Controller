@@ -8,7 +8,7 @@ int main(void)
 	
 	//DDRB = 0xFF;  // define all Port B bits as output for display of loop back data:
 	//PORTB = 0xFF;
-	PORTD = 0xFF;
+	//PORTD = 0xFF;
 	DDRD = 0xFF;
 	DDRC = 0x00;
 	PRR = 0x00;//Clears power reduction
@@ -23,12 +23,6 @@ int main(void)
 		while ((ADCSRA &(1<<ADIF))== 0){
 			sensorval = ADCH;
 			transmit_data_usart(sensorval);
-			//if (sensorval > 50){
-				//PORTD = 0b11111110;
-			//}
-			//if (sensorval < 50){
-				//PORTD = 0xff;
-			//}
 		
 		}
 		//transmit_data_usart(sensorval);
