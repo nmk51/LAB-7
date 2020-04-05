@@ -6,25 +6,30 @@
 */
 //NEW TRANSMITTING MICROCONTROLLER CODE
 #include <avr/io.h>
-void initialize_usart(void); //Function to set up USART
+void initialize_usart(); //Function to set up USART
 void transmit_data_usart(int); //Function to transmit a byte by USART
 char sensorval = 0;//Value from pot, dropping last two bits so can be char
+void wait(int msec);
+void delayNms_timer0();
+
+
 
 int main(void)
 {
-	initialize_usart(); //Start the USART
+	
 	DDRC = 0x00;//Sets PORTC to input
 	PRR = 0x00;//Clears power reduction
 	ADCSRA = 0b10000111;//Enables ADC and sets freq to 128
 	ADMUX = 0b01100101;//Sets reff voltage, sets to left justified, connects to ADC5(PC5)
+	initialize_usart(); //Start the USART
 	while (1)
 	{
 		//HAVE TO ADD THE ADC
 		ADCSRA |= (1<<ADSC);//Turns on 6 bit to start conversion
 		while ((ADCSRA & (1<<ADIF))==0){//Checks bit 4 to see if flag is up(finished reading)
 			sensorval = ADCH;//Reads the sensor value
-			
 			transmit_data_usart(sensorval);//Transmitting the sensor value
+			wait(250);
 		}
 		
 		
@@ -34,14 +39,31 @@ int main(void)
 }//End main
 
 void initialize_usart(void){//Sets up USART
-	UCSR0B = 0b00010000;//Enables serial transmission
-	UCSR0C = 0b00000110;//Asynchronous mode, 8-bit data, no parity, 1 stop bit
+	UCSR0B = (1<<TXEN0) | (1<<RXEN0); //0b00010000;//Enables serial transmission
+	UCSR0C = (1<<UCSZ01)| (1<<UCSZ00);//0b00000110;//Asynchronous mode, 8-bit data, no parity, 1 stop bit
 	UBRR0L = 0x67;//16MHz crystal clock, 9600 Baud Rate
 	
 }//End USART set up
 
 void transmit_data_usart(int data){//Sends data
-	while(!(UCSR0A & 0b00100000));//Makes sure transmit buffer is ready
+	while(!(UCSR0A & (1<<UDRE0)));//Makes sure transmit buffer is ready
 	UDR0 = data;
 	
+}
+
+void wait(int msec){
+	while(msec>0){
+		delayNms_timer0();
+		msec = msec - 1;
+		
+	}
+}//end
+
+void delayNms_timer0(){
+	TCCR0A = 0x00;
+	TCNT0 = 5;
+	TCCR0B = 0x03;
+	while ((TIFR0 &(0x1<<TOV0))==0);
+	TCCR0B = 0x00;
+	TIFR0 = 0x1<<TOV0;
 }
