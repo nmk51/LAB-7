@@ -9,8 +9,8 @@
 
 #include <avr/io.h>
 void initialize_usart();
-
-
+void wait(int msec);
+void delayNms_timer0();
 int main(void)
 {
 	DDRD = 0x00;//Sets portB as Input
@@ -23,7 +23,9 @@ int main(void)
 		while(!(UCSR0A & 0b10000000));
 		data = UDR0; //Reads the data
 		PORTC = data;//Prints data onto PORTD Lights
+		//wait(250);
 	}
+
 	return 0;
 }//END MAIN
 
@@ -35,3 +37,21 @@ void initialize_usart(void){
 	
 	
 }
+
+void wait(int msec){
+	while(msec>0){
+		delayNms_timer0();
+		msec = msec - 1;
+		
+	}
+}//end 
+
+void delayNms_timer0(){
+	TCCR0A = 0x00;
+	TCNT0 = 5;
+	TCCR0B = 0x03;
+	while ((TIFR0 &(0x1<<TOV0))==0);
+	TCCR0B = 0x00;
+	TIFR0 = 0x1<<TOV0;
+	}
+	
