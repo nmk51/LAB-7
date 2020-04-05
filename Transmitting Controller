@@ -1,73 +1,47 @@
+/*
+* GccApplication36.cpp
+*
+* Created: 4/4/2020 9:10:17 PM
+* Author : Nicholas
+*/
+//NEW TRANSMITTING MICROCONTROLLER CODE
 #include <avr/io.h>
-char sensorval = 0; //Potent Reading(Dropping last 2 bits so can be char)
-void initialize_usart(void); // setup function for USART
-void transmit_data_usart(int); // Function to transmit a character
+void initialize_usart(void); //Function to set up USART
+void transmit_data_usart(int); //Function to transmit a byte by USART
+char sensorval = 0;//Value from pot, dropping last two bits so can be char
+
 int main(void)
 {
-	// Setup
-	
-	//DDRB = 0xFF;  // define all Port B bits as output for display of loop back data:
-	//PORTB = 0xFF;
-	//PORTD = 0xFF;
-	DDRD = 0xFF;
-	DDRC = 0x00;
+	initialize_usart(); //Start the USART
+	DDRC = 0x00;//Sets PORTC to input
 	PRR = 0x00;//Clears power reduction
-	ADCSRA = 0x87;//Enables ADC and sets frequency to 128
-	ADMUX = 0x60;//Sets reff volt, Sets to left justified, Connects to ADC5(PC5)
-	// Initialize the USART with desired parameters
-	initialize_usart();
-	
-	while(1)
+	ADCSRA = 0b10000111;//Enables ADC and sets freq to 128
+	ADMUX = 0b01100101;//Sets reff voltage, sets to left justified, connects to ADC5(PC5)
+	while (1)
 	{
-		ADCSRA |= (1<<ADSC);//Turns bit 6 on to start conversion
-		while ((ADCSRA &(1<<ADIF))== 0){
-			sensorval = ADCH;
-			transmit_data_usart(sensorval);
-		
+		//HAVE TO ADD THE ADC
+		ADCSRA |= (1<<ADSC);//Turns on 6 bit to start conversion
+		while ((ADCSRA & (1<<ADIF))==0){//Checks bit 4 to see if flag is up(finished reading)
+			sensorval = ADCH;//Reads the sensor value
+			
+			transmit_data_usart(sensorval);//Transmitting the sensor value
 		}
-		//transmit_data_usart(sensorval);
-	} // end main while
+		
+		
+		
+	}
 	return 0;
-} // end main
-void initialize_usart(void) // setup function for USART
-{
-	UCSR0B = 0b00010000; // enable serial transmission; 	UCSR0B = (1<<RXEN0); // enable serial receive
-	UCSR0C = 0b00000110; // Asynchronous mode, 8-bit data; no parity; 1 stop bit
-	UBRR0L = 0x67; // (9,600 baud rate/ 16MHz external crystal Quartz Clock)
-}
-void transmit_data_usart(int data_out) // Function to transmit a character
-{
-	while (!(UCSR0A & 0b00100000)); // Poll to make sure transmit buffer is ready, then send data
-	UDR0 = data_out;
-}
-//void wait(int msec)
-//{
-// This subroutine calls others to create a delay
-// function passes number of msec to delay
-//while (msec > 0) {
-//delayNms_timer0();
-//msec = msec - 1;
-//}
-//} // end wait
-void delayNms_timer0()
-{
-	// This subroutine creates a delay of N msec using TIMER0 with prescaler on clock, where, for a 16MHz clock:
-	//		N = .0156 msec for no prescaler and count of 250 (preload counter with 5)
-	//		N = 0.125 msec for prescaler set to 8 and count of 250 (preload counter with 5)
-	//		N = 1 msec for prescaler set to 64 and count of 250 (preload counter with 5)
-	//		N = 4 msec for prescaler set to 256 and count of 250 (preload counter with 5)
-	//		N = 16 msec for prescaler set to 1,024 and count of 250 (preload counter with 5)
+}//End main
 
-	TCCR0A = 0x00; // clears WGM00 and WGM01 (bits 0 and 1) to ensure Timer/Counter is in normal mode.
-	TCNT0 = 5;  // load timer0 with number for delay (count must reach 255-5)
-	//TCCR0B = 0x01; // Start Timer0, Normal mode, crystal clock, no prescaler
-	// TCCR0B = 0x02; // Start Timer0, Normal mode, crystal clock, prescaler = 8
-	TCCR0B =  0x03;  // Start Timer0, Normal mode, crystal clock, prescaler = 64
-	//TCCR0B = 0x04; // Start Timer0, Normal mode, crystal clock, prescaler = 256
-	//TCCR0B = 0x05; // Start Timer0, Normal mode, crystal clock, prescaler = 1024
+void initialize_usart(void){//Sets up USART
+	UCSR0B = 0b00010000;//Enables serial transmission
+	UCSR0C = 0b00000110;//Asynchronous mode, 8-bit data, no parity, 1 stop bit
+	UBRR0L = 0x67;//16MHz crystal clock, 9600 Baud Rate
+	
+}//End USART set up
 
-	while ((TIFR0 & (0x1<<TOV0)) == 0); // wait for TOV0 to roll over:
-
-	TCCR0B = 0x00; // Stop Timer0
-	TIFR0 = 0x1<<TOV0;  // Clear TOV0 (note that this is an odd bit in that it is cleared by writing a 1 to it)
+void transmit_data_usart(int data){//Sends data
+	while(!(UCSR0A & 0b00100000));//Makes sure transmit buffer is ready
+	UDR0 = data;
+	
 }
